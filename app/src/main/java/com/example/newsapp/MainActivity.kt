@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private lateinit var newsAdapter : NewsAdapter
     private val retrofit = Retrofit.Builder()
-        .baseUrl("https://www.donga.com/news/")
+        .baseUrl("https://www.mk.co.kr/")
         .addConverterFactory(
             TikXmlConverterFactory.create(
                 TikXml.Builder()
@@ -36,15 +36,65 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         newsAdapter = NewsAdapter()
+        val newsService = retrofit.create(NewsService::class.java)
 
         binding.newsRecyclerView.apply{
             layoutManager=LinearLayoutManager(context)
             adapter = newsAdapter
         }
 
+        binding.feedsChip.setOnClickListener {
+            binding.chipGroup.clearCheck()
+            binding.feedsChip.isChecked = true
 
-        val newsService = retrofit.create(NewsService::class.java)
-        newsService.mainFeed().enqueue(object: Callback<NewsRss>{
+            newsService.mainFeed().submitList()
+        }
+        binding.politicsChip.setOnClickListener {
+            binding.chipGroup.clearCheck()
+            binding.politicsChip.isChecked = true
+            newsService.politicsNews().submitList()
+
+        }
+        binding.economyChip.setOnClickListener {
+            binding.chipGroup.clearCheck()
+            binding.economyChip.isChecked = true
+
+            newsService.economyNews().submitList()
+
+        }
+
+        binding.societyChip.setOnClickListener {
+            binding.chipGroup.clearCheck()
+            binding.societyChip.isChecked = true
+
+            newsService.societyNews().submitList()
+
+        }
+        binding.itChip.setOnClickListener {
+            binding.chipGroup.clearCheck()
+            binding.itChip.isChecked = true
+
+            newsService.itNews().submitList()
+        }
+        binding.sportChip.setOnClickListener {
+            binding.chipGroup.clearCheck()
+            binding.sportChip.isChecked = true
+
+            newsService.sportNews().submitList()
+
+        }
+
+
+
+        newsService.mainFeed().submitList()
+
+
+
+
+    }
+
+    private fun Call<NewsRss>.submitList(){
+        enqueue(object: Callback<NewsRss>{
             override fun onResponse(call: Call<NewsRss>, response: Response<NewsRss>) {
                 Log.e("MainActivity","${response.body()?.channel?.items}")
 
@@ -85,8 +135,6 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-
-
 
     }
 }
