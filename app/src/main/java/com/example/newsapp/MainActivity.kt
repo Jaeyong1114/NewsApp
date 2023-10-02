@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private lateinit var newsAdapter : NewsAdapter
     private val retrofit = Retrofit.Builder()
-        .baseUrl("https://news.google.com/")
+        .baseUrl("https://www.donga.com/news/")
         .addConverterFactory(
             TikXmlConverterFactory.create(
                 TikXml.Builder()
@@ -51,22 +51,24 @@ class MainActivity : AppCompatActivity() {
                 val list = response.body()?.channel?.items.orEmpty().transform()
                 newsAdapter.submitList(list)
 
-                list.forEach{
+                list.forEachIndexed {index, news ->
 
                     Thread{
                         try{
-                            val jsoup = Jsoup.connect(it.link).get()
+                            val jsoup = Jsoup.connect(news.link).get()
                             val elements = jsoup.select("meta[property^=og:]")
                             val ogImageNode = elements.find {node ->
                                 node.attr("property") == "og:image"
                             }
 
-                            it.imageUrl=ogImageNode?.attr("content")
-                            Log.e("MainActivity","imageUrl :${it.imageUrl}")
+                            news.imageUrl=ogImageNode?.attr("content")
+                            Log.e("MainActivity","imageUrl :${news.imageUrl}")
 
                         } catch (e: Exception){
                             e.printStackTrace()
                         }
+                        runOnUiThread { newsAdapter.notifyItemChanged(index) }
+
 
 
 
