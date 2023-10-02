@@ -1,8 +1,13 @@
 package com.example.newsapp
 
+import android.content.Context
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.newsapp.databinding.ActivityMainBinding
 import com.tickaroo.tikxml.TikXml
@@ -35,7 +40,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        newsAdapter = NewsAdapter()
+        newsAdapter = NewsAdapter{
+            startActivity(
+                Intent(this,WebViewActivity::class.java).apply{
+                    putExtra("url",it)
+                }
+            )
+        }
         val newsService = retrofit.create(NewsService::class.java)
 
         binding.newsRecyclerView.apply{
@@ -84,6 +95,26 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+        binding.searchTextInputEditText.setOnEditorActionListener { v, actionId, event ->
+            if(actionId == EditorInfo.IME_ACTION_SEARCH){
+                binding.chipGroup.clearCheck()
+
+                binding.searchTextInputEditText.clearFocus()
+
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(v.windowToken, 0)
+
+
+                val url = "https://www.mk.co.kr/search?word="+binding.searchTextInputEditText.text.toString()
+                val intent = Intent(this,WebViewActivity::class.java)
+                intent.putExtra("url",url)
+                startActivity(intent)
+                return@setOnEditorActionListener true
+
+            }
+            return@setOnEditorActionListener false
+        }
+
 
 
         newsService.mainFeed().submitList()
@@ -100,6 +131,8 @@ class MainActivity : AppCompatActivity() {
 
                 val list = response.body()?.channel?.items.orEmpty().transform()
                 newsAdapter.submitList(list)
+
+                binding.notFoundView.isVisible=list.isEmpty()
 
                 list.forEachIndexed {index, news ->
 

@@ -22,6 +22,9 @@ interface NewsService {
     @GET("rss/30100041/")
     fun economyNews(): Call<NewsRss>
 
+    //@GET(//지원안함)
+    //검색기능 RSS 지원X
+
 
 
 }
